@@ -3,19 +3,18 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 
-/* Check if user is logged in */
-const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  return token ? children : <Navigate to="/" />;
-};
-
-/* Check if user is admin */
-const AdminRoute = ({ children }) => {
+/* 🔐 Protected route for logged-in users */
+const ProtectedRoute = ({ children, role }) => {
   const token = sessionStorage.getItem("token");
-  const role = sessionStorage.getItem("role");
+  const userRole = sessionStorage.getItem("role");
 
-  if (!token) return <Navigate to="/" />;
-  if (role !== "admin") return <Navigate to="/dashboard" />;
+  if (!token) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (role && userRole !== role) {
+    return <Navigate to="/" replace />;
+  }
 
   return children;
 };
@@ -26,28 +25,28 @@ function App() {
       {/* PUBLIC */}
       <Route path="/" element={<Login />} />
 
-      {/* EMPLOYEE */}
+      {/* EMPLOYEE DASHBOARD */}
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute role="employee">
             <Dashboard />
           </ProtectedRoute>
         }
       />
 
-      {/* ADMIN */}
+      {/* ADMIN DASHBOARD */}
       <Route
         path="/admin"
         element={
-          <AdminRoute>
+          <ProtectedRoute role="admin">
             <Admin />
-          </AdminRoute>
+          </ProtectedRoute>
         }
       />
 
       {/* FALLBACK */}
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
