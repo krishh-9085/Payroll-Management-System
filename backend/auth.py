@@ -1,19 +1,35 @@
 from passlib.context import CryptContext
 from jose import jwt
+import hashlib
 
 SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def hash_password(password: str):
-    # bcrypt hard limit = 72 bytes
-    safe_password = password[:72]
-    return pwd_context.hash(safe_password)
 
-def verify_password(password: str, hashed: str):
-    safe_password = password[:72]
-    return pwd_context.verify(safe_password, hashed)
+# =========================
+# PASSWORD HASHING
+# =========================
+
+def hash_password(password: str) -> str:
+    """
+    Secure password hashing:
+    1. Normalize password using SHA-256
+    2. Hash using bcrypt
+    """
+    sha_password = hashlib.sha256(password.encode("utf-8")).hexdigest()
+    return pwd_context.hash(sha_password)
+
+
+def verify_password(password: str, hashed: str) -> bool:
+    sha_password = hashlib.sha256(password.encode("utf-8")).hexdigest()
+    return pwd_context.verify(sha_password, hashed)
+
+
+# =========================
+# JWT TOKEN
+# =========================
 
 def create_token(user):
     payload = {
