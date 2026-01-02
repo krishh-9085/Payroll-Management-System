@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import API_BASE_URL from "../api";
+
 
 function Admin() {
     const [employees, setEmployees] = useState([]);
@@ -20,9 +22,7 @@ function Admin() {
 
     const fetchEmployees = async () => {
         try {
-            const res = await axios.get(
-                "http://127.0.0.1:8000/admin/employees",
-                { headers }
+            const res = await axios.get(`${API_BASE_URL}/admin/employees`, { headers }
             );
             setEmployees(res.data);
         } catch {
@@ -37,8 +37,7 @@ function Admin() {
         }
 
         try {
-            await axios.post(
-                "http://127.0.0.1:8000/salary-slip",
+            await axios.post(`${API_BASE_URL}/salary-slip`,
                 {
                     user_id: Number(userId),
                     month,

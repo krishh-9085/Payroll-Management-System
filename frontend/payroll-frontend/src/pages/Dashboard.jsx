@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import API_BASE_URL from "../api";
+
 import {
     BarChart,
     Bar,
@@ -25,12 +27,14 @@ function Dashboard() {
 
     const fetchData = () => {
         axios
-            .get("http://127.0.0.1:8000/salary-slip", { headers })
+        axios.get(`${API_BASE_URL}/salary-slip`, { headers })
+
             .then((res) => setSalarySlips(res.data))
             .catch(() => toast.error("Failed to load salary slips"));
 
         axios
-            .get("http://127.0.0.1:8000/expense", { headers })
+        axios.get(`${API_BASE_URL}/expense`, { headers })
+
             .then((res) => setExpenses(res.data))
             .catch(() => toast.error("Failed to load expenses"));
     };
@@ -46,8 +50,7 @@ function Dashboard() {
         }
 
         try {
-            await axios.post(
-                "http://127.0.0.1:8000/expense",
+            await axios.post(`${API_BASE_URL}/salary-slip`,
                 { description, amount: Number(amount) },
                 { headers }
             );
@@ -63,8 +66,7 @@ function Dashboard() {
 
     const downloadPDF = async (slipId) => {
         try {
-            const response = await axios.get(
-                `http://127.0.0.1:8000/salary-slip/${slipId}/pdf`,
+            const response = await axios.get(`${API_BASE_URL}/salary-slip/${id}/pdf`,
                 {
                     headers: {
                         Authorization: `Bearer ${sessionStorage.getItem("token")}`,

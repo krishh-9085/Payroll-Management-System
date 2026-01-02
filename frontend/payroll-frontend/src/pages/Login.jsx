@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import API_BASE_URL from "../api";
 
 function Login() {
     const [isSignup, setIsSignup] = useState(false);
@@ -32,8 +33,7 @@ function Login() {
                 setIsSignup(false);
             } else {
                 // LOGIN
-                const res = await axios.post(
-                    "http://127.0.0.1:8000/auth/login",
+                const res = await axios.post(`${API_BASE_URL}/auth/login`,
                     {
                         email,
                         password,
