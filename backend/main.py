@@ -14,11 +14,36 @@ from schemas import UserCreate, Login, SalarySlipCreate, ExpenseCreate
 from auth import hash_password, verify_password, create_token
 from dependencies import admin_only, get_current_user
 
+
+def seed_demo_user():
+    db = SessionLocal()
+    try:
+        demo_email = "hire-me@anshumat.org"
+
+        existing_user = db.query(User).filter(User.email == demo_email).first()
+        if not existing_user:
+            demo_user = User(
+                email=demo_email,
+                password=hash_password("HireMe@2025!"),
+                role="employee"
+            )
+            db.add(demo_user)
+            db.commit()
+            print("✅ Demo user created")
+        else:
+            print("ℹ️ Demo user already exists")
+
+    finally:
+        db.close()
+
+
 # =========================
 # APP & DB SETUP
 # =========================
 
 Base.metadata.create_all(bind=engine)
+seed_demo_user()
+
 
 app = FastAPI()
 
