@@ -25,16 +25,15 @@ function Dashboard() {
         Authorization: `Bearer ${sessionStorage.getItem("token")}`,
     };
 
+    // ================= FETCH DATA =================
     const fetchData = () => {
         axios
-        axios.get(`${API_BASE_URL}/salary-slip`, { headers })
-
+            .get(`${API_BASE_URL}/salary-slip`, { headers })
             .then((res) => setSalarySlips(res.data))
             .catch(() => toast.error("Failed to load salary slips"));
 
         axios
-        axios.get(`${API_BASE_URL}/expense`, { headers })
-
+            .get(`${API_BASE_URL}/expense`, { headers })
             .then((res) => setExpenses(res.data))
             .catch(() => toast.error("Failed to load expenses"));
     };
@@ -43,6 +42,7 @@ function Dashboard() {
         fetchData();
     }, []);
 
+    // ================= SUBMIT EXPENSE =================
     const submitExpense = async () => {
         if (!description || !amount) {
             toast.error("Please fill all fields");
@@ -50,7 +50,8 @@ function Dashboard() {
         }
 
         try {
-            await axios.post(`${API_BASE_URL}/salary-slip`,
+            await axios.post(
+                `${API_BASE_URL}/expense`,
                 { description, amount: Number(amount) },
                 { headers }
             );
@@ -64,13 +65,13 @@ function Dashboard() {
         }
     };
 
+    // ================= DOWNLOAD PDF =================
     const downloadPDF = async (slipId) => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/salary-slip/${id}/pdf`,
+            const response = await axios.get(
+                `${API_BASE_URL}/salary-slip/${slipId}/pdf`,
                 {
-                    headers: {
-                        Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-                    },
+                    headers,
                     responseType: "blob",
                 }
             );
@@ -87,7 +88,6 @@ function Dashboard() {
             toast.error("Failed to download PDF");
         }
     };
-
 
     const totalSalary = salarySlips.reduce((sum, s) => sum + s.amount, 0);
     const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
@@ -182,7 +182,7 @@ function Dashboard() {
                     </div>
                 </div>
 
-                {/* SALARY TABLE WITH PDF */}
+                {/* SALARY TABLE */}
                 <div className="bg-white p-6 rounded-2xl shadow mb-10">
                     <h3 className="font-semibold mb-4">Salary Slips</h3>
                     <table className="w-full text-sm border">

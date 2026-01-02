@@ -3,12 +3,12 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import API_BASE_URL from "../api";
 
-
 function Admin() {
     const [employees, setEmployees] = useState([]);
     const [userId, setUserId] = useState("");
     const [month, setMonth] = useState("");
     const [amount, setAmount] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const adminEmail = sessionStorage.getItem("email");
 
@@ -20,9 +20,12 @@ function Admin() {
         fetchEmployees();
     }, []);
 
+    // ================= FETCH EMPLOYEES =================
     const fetchEmployees = async () => {
         try {
-            const res = await axios.get(`${API_BASE_URL}/admin/employees`, { headers }
+            const res = await axios.get(
+                `${API_BASE_URL}/admin/employees`,
+                { headers }
             );
             setEmployees(res.data);
         } catch {
@@ -30,6 +33,7 @@ function Admin() {
         }
     };
 
+    // ================= CREATE SALARY SLIP =================
     const createSalarySlip = async () => {
         if (!userId || !month || !amount) {
             toast.error("Please fill all fields");
@@ -37,7 +41,10 @@ function Admin() {
         }
 
         try {
-            await axios.post(`${API_BASE_URL}/salary-slip`,
+            setLoading(true);
+
+            await axios.post(
+                `${API_BASE_URL}/salary-slip`,
                 {
                     user_id: Number(userId),
                     month,
@@ -46,12 +53,18 @@ function Admin() {
                 { headers }
             );
 
-            toast.success("Salary slip created");
+            toast.success("Salary slip created successfully");
+
+            // reset form
             setUserId("");
             setMonth("");
             setAmount("");
-        } catch {
-            toast.error("Failed to create salary slip");
+        } catch (err) {
+            toast.error(
+                err.response?.data?.detail || "Failed to create salary slip"
+            );
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -91,9 +104,9 @@ function Admin() {
             </div>
 
             {/* MAIN */}
-            <div className="max-w-7xl mx-auto p-8">
+            <div className="max-w-7xl mx-auto p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* CREATE SALARY SLIP */}
-                <div className="bg-white p-8 rounded-2xl shadow mb-10 max-w-xl">
+                <div className="bg-white p-8 rounded-2xl shadow lg:col-span-1">
                     <h3 className="text-lg font-semibold mb-6">
                         Create Salary Slip
                     </h3>
@@ -138,36 +151,51 @@ function Admin() {
 
                     <button
                         onClick={createSalarySlip}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-semibold"
+                        disabled={loading}
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-semibold disabled:opacity-60"
                     >
-                        Create Salary Slip
+                        {loading ? "Creating..." : "Create Salary Slip"}
                     </button>
                 </div>
 
                 {/* EMPLOYEE LIST */}
-                <div className="bg-white p-6 rounded-2xl shadow">
+                <div className="bg-white p-6 rounded-2xl shadow lg:col-span-2">
                     <h3 className="font-semibold mb-4 text-gray-700">
                         Employee Accounts
                     </h3>
 
-                    <table className="w-full text-sm border">
-                        <thead className="bg-gray-100">
-                            <tr>
-                                <th className="border p-2 text-left">ID</th>
-                                <th className="border p-2 text-left">Email</th>
-                                <th className="border p-2 text-left">Role</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {employees.map((emp) => (
-                                <tr key={emp.id}>
-                                    <td className="border p-2">{emp.id}</td>
-                                    <td className="border p-2">{emp.email}</td>
-                                    <td className="border p-2 capitalize">{emp.role}</td>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm border">
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th className="border p-2 text-left">ID</th>
+                                    <th className="border p-2 text-left">Email</th>
+                                    <th className="border p-2 text-left">Role</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {employees.map((emp) => (
+                                    <tr key={emp.id} className="hover:bg-gray-50">
+                                        <td className="border p-2">{emp.id}</td>
+                                        <td className="border p-2">{emp.email}</td>
+                                        <td className="border p-2 capitalize">
+                                            {emp.role}
+                                        </td>
+                                    </tr>
+                                ))}
+                                {employees.length === 0 && (
+                                    <tr>
+                                        <td
+                                            colSpan="3"
+                                            className="border p-4 text-center text-gray-500"
+                                        >
+                                            No employees found
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import API_BASE_URL from "../api";
 
 function Login() {
@@ -14,7 +15,7 @@ function Login() {
 
     const handleSubmit = async () => {
         if (!email || !password) {
-            alert("Please fill all fields");
+            toast.error("Please fill all fields");
             return;
         }
 
@@ -22,36 +23,35 @@ function Login() {
             setLoading(true);
 
             if (isSignup) {
-                // SIGNUP
-                await axios.post("http://127.0.0.1:8000/auth/signup", {
+                // ================= SIGNUP =================
+                await axios.post(`${API_BASE_URL}/auth/signup`, {
                     email,
                     password,
                     role,
                 });
 
-                alert("Signup successful! Please login.");
+                toast.success("Signup successful! Please login.");
                 setIsSignup(false);
+                setPassword("");
             } else {
-                // LOGIN
-                const res = await axios.post(`${API_BASE_URL}/auth/login`,
-                    {
-                        email,
-                        password,
-                    }
-                );
+                // ================= LOGIN =================
+                const res = await axios.post(`${API_BASE_URL}/auth/login`, {
+                    email,
+                    password,
+                });
 
                 // 🔐 STORE SESSION DATA
                 sessionStorage.setItem("token", res.data.access_token);
                 sessionStorage.setItem("role", res.data.role);
                 sessionStorage.setItem("email", email);
-                
+
+                toast.success("Login successful");
 
                 navigate(res.data.role === "admin" ? "/admin" : "/dashboard");
             }
         } catch (err) {
-            alert(
-                err.response?.data?.detail ||
-                "Something went wrong"
+            toast.error(
+                err.response?.data?.detail || "Authentication failed"
             );
         } finally {
             setLoading(false);
@@ -67,9 +67,7 @@ function Login() {
                         Payroll System
                     </h1>
                     <p className="text-gray-500 text-sm mt-1">
-                        {isSignup
-                            ? "Create your account"
-                            : "Sign in to continue"}
+                        {isSignup ? "Create your account" : "Sign in to continue"}
                     </p>
                 </div>
 
