@@ -23,10 +23,9 @@ function Admin() {
     // ================= FETCH EMPLOYEES =================
     const fetchEmployees = async () => {
         try {
-            const res = await axios.get(
-                `${API_BASE_URL}/admin/employees`,
-                { headers }
-            );
+            const res = await axios.get(`${API_BASE_URL}/admin/employees`, {
+                headers,
+            });
             setEmployees(res.data);
         } catch {
             toast.error("Failed to load employees");
@@ -47,15 +46,13 @@ function Admin() {
                 `${API_BASE_URL}/salary-slip`,
                 {
                     user_id: Number(userId),
-                    month,
+                    month, // format: YYYY-MM
                     amount: Number(amount),
                 },
                 { headers }
             );
 
             toast.success("Salary slip created successfully");
-
-            // reset form
             setUserId("");
             setMonth("");
             setAmount("");
@@ -75,18 +72,22 @@ function Admin() {
 
     return (
         <div className="min-h-screen bg-gray-100">
-            {/* NAVBAR */}
-            <div className="bg-white border-b shadow-sm px-8 py-4 flex justify-between items-center">
+            {/* ================= NAVBAR ================= */}
+            <div className="bg-white border-b shadow-sm px-4 sm:px-8 py-4 flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
                 <div>
-                    <h1 className="text-xl font-bold text-indigo-600">
+                    <h1 className="text-lg sm:text-xl font-bold text-indigo-600">
                         Payroll Management System
                     </h1>
-                    <p className="text-sm text-gray-500">Admin Dashboard</p>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                        Admin Dashboard
+                    </p>
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <div className="text-right">
-                        <p className="text-sm font-medium text-gray-700">{adminEmail}</p>
+                    <div className="text-right hidden sm:block">
+                        <p className="text-sm font-medium text-gray-700">
+                            {adminEmail}
+                        </p>
                         <p className="text-xs text-gray-500">Administrator</p>
                     </div>
 
@@ -96,28 +97,29 @@ function Admin() {
 
                     <button
                         onClick={logout}
-                        className="text-sm text-red-600 hover:underline ml-4"
+                        className="text-sm text-red-600 hover:underline"
                     >
                         Logout
                     </button>
                 </div>
             </div>
 
-            {/* MAIN */}
-            <div className="max-w-7xl mx-auto p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* CREATE SALARY SLIP */}
-                <div className="bg-white p-8 rounded-2xl shadow lg:col-span-1">
+            {/* ================= MAIN ================= */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* ================= CREATE SALARY SLIP ================= */}
+                <div className="bg-white p-6 sm:p-8 rounded-2xl shadow">
                     <h3 className="text-lg font-semibold mb-6">
                         Create Salary Slip
                     </h3>
 
+                    {/* Employee */}
                     <label className="block text-sm text-gray-600 mb-1">
                         Select Employee
                     </label>
                     <select
                         value={userId}
                         onChange={(e) => setUserId(e.target.value)}
-                        className="w-full border rounded-lg px-4 py-2 mb-4"
+                        className="w-full border rounded-lg px-4 py-2 mb-4 focus:ring-2 focus:ring-indigo-500"
                     >
                         <option value="">-- Select Employee --</option>
                         {employees.map((emp) => (
@@ -127,17 +129,18 @@ function Admin() {
                         ))}
                     </select>
 
+                    {/* Month Picker ✅ */}
                     <label className="block text-sm text-gray-600 mb-1">
-                        Month
+                        Salary Month
                     </label>
                     <input
-                        type="text"
-                        placeholder="e.g. March 2025"
+                        type="month"
                         value={month}
                         onChange={(e) => setMonth(e.target.value)}
-                        className="w-full border rounded-lg px-4 py-2 mb-4"
+                        className="w-full border rounded-lg px-4 py-2 mb-4 focus:ring-2 focus:ring-indigo-500"
                     />
 
+                    {/* Amount */}
                     <label className="block text-sm text-gray-600 mb-1">
                         Salary Amount
                     </label>
@@ -146,7 +149,7 @@ function Admin() {
                         placeholder="Enter salary amount"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
-                        className="w-full border rounded-lg px-4 py-2 mb-6"
+                        className="w-full border rounded-lg px-4 py-2 mb-6 focus:ring-2 focus:ring-indigo-500"
                     />
 
                     <button
@@ -158,14 +161,14 @@ function Admin() {
                     </button>
                 </div>
 
-                {/* EMPLOYEE LIST */}
+                {/* ================= EMPLOYEE LIST ================= */}
                 <div className="bg-white p-6 rounded-2xl shadow lg:col-span-2">
                     <h3 className="font-semibold mb-4 text-gray-700">
                         Employee Accounts
                     </h3>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm border">
+                        <table className="min-w-full text-sm border">
                             <thead className="bg-gray-100">
                                 <tr>
                                     <th className="border p-2 text-left">ID</th>

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from reportlab.lib import colors
 import os
 
 from database import Base, engine, SessionLocal
@@ -21,10 +22,10 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# CORS (IMPORTANT FOR FRONTEND)
+# CORS (FOR DEPLOYMENT)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # for deployment
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -85,7 +86,6 @@ def login(data: Login, db: Session = Depends(get_db)):
 # ADMIN ROUTES
 # =========================
 
-# 👉 Fetch all employees (for dropdown in Admin UI)
 @app.get("/admin/employees")
 def get_all_employees(
     admin: User = Depends(admin_only),
@@ -94,7 +94,6 @@ def get_all_employees(
     return db.query(User).filter(User.role == "employee").all()
 
 
-# 👉 Create salary slip
 @app.post("/salary-slip")
 def create_salary_slip(
     slip: SalarySlipCreate,
@@ -150,7 +149,7 @@ def view_expenses(
     ).all()
 
 # =========================
-# PDF SALARY SLIP EXPORT
+# PROFESSIONAL PDF SALARY SLIP
 # =========================
 
 @app.get("/salary-slip/{slip_id}/pdf")
@@ -165,21 +164,89 @@ def download_salary_slip_pdf(
         raise HTTPException(status_code=404, detail="Salary slip not found")
 
     file_name = f"salary_slip_{slip.id}.pdf"
-    file_path = os.path.join(file_name)
+    file_path = file_name
 
     c = canvas.Canvas(file_path, pagesize=A4)
     width, height = A4
 
+    # ================= HEADER =================
     c.setFont("Helvetica-Bold", 22)
-    c.drawCentredString(width / 2, height - 80, "Salary Slip")
+    c.setFillColor(colors.HexColor("#4f46e5"))  # Indigo
+    c.drawCentredString(width / 2, height - 50, "Payroll Management System")
 
     c.setFont("Helvetica", 12)
-    c.drawString(80, height - 150, f"Employee ID: {slip.user_id}")
-    c.drawString(80, height - 180, f"Month: {slip.month}")
-    c.drawString(80, height - 210, f"Salary Amount: ₹ {slip.amount}")
+    c.setFillColor(colors.black)
+    c.drawCentredString(width / 2, height - 80, "Salary Slip")
 
-    c.drawString(80, height - 260, "This is a system generated salary slip.")
-    c.drawString(80, height - 290, "No signature required.")
+    c.setStrokeColor(colors.grey)
+    c.line(40, height - 100, width - 40, height - 100)
+
+    # ================= EMPLOYEE DETAILS =================
+    y = height - 140
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, "Employee Details")
+
+    c.setFont("Helvetica", 11)
+    y -= 25
+    c.drawString(50, y, "Employee Email:")
+    c.drawString(200, y, user.email)
+
+    y -= 20
+    c.drawString(50, y, "Employee ID:")
+    c.drawString(200, y, str(slip.user_id))
+
+    y -= 20
+    c.drawString(50, y, "Salary Month:")
+    c.drawString(200, y, slip.month)
+
+    # ================= SALARY TABLE =================
+    y -= 40
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, "Salary Breakdown")
+
+    table_x = 50
+    table_y = y - 20
+    table_width = width - 100
+    row_height = 30
+
+    # Header background
+    c.setFillColor(colors.lightgrey)
+    c.rect(table_x, table_y - row_height, table_width, row_height, fill=1)
+
+    c.setFillColor(colors.black)
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(table_x + 10, table_y - 20, "Component")
+    c.drawRightString(table_x + table_width - 20, table_y - 20, "Amount (₹)")
+
+    # Row
+    c.setFont("Helvetica", 11)
+    c.drawString(table_x + 10, table_y - 50, "Basic Salary")
+    c.drawRightString(
+        table_x + table_width - 20,
+        table_y - 50,
+        f"{slip.amount}"
+    )
+
+    # Border
+    c.rect(table_x, table_y - row_height * 2, table_width, row_height * 2)
+
+    # ================= TOTAL =================
+    y = table_y - row_height * 2 - 30
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, "Total Salary:")
+    c.drawString(200, y, f"₹ {slip.amount}")
+
+    # ================= FOOTER =================
+    c.setStrokeColor(colors.grey)
+    c.line(40, 100, width - 40, 100)
+
+    c.setFont("Helvetica", 10)
+    c.setFillColor(colors.grey)
+    c.drawCentredString(
+        width / 2,
+        80,
+        "This is a system-generated salary slip. No signature required."
+    )
 
     c.showPage()
     c.save()
